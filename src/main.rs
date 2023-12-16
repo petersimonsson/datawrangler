@@ -25,7 +25,7 @@ async fn main() -> Result<()> {
     println!();
 
     let ctx = SessionContext::new();
-    let options = CsvReadOptions::new().has_header(false);
+    let options = CsvReadOptions::new().has_header(!args.no_header());
     ctx.register_csv(table, args.file(), options).await?;
 
     loop {
