@@ -31,7 +31,6 @@ impl Prompt {
             match event::read()? {
                 Event::Key(ev) => match ev.code {
                     KeyCode::Up => {
-                        println!("UP");
                         if current > 0 {
                             current = current - 1;
                             buf = self.history[current as usize].clone().into();
