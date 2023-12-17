@@ -17,7 +17,7 @@ use crate::{args::Args, prompt::Prompt};
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
-    let file = args.file().rsplitn(2, '/').next().unwrap();
+    let file = args.file().rsplit('/').next().unwrap();
     let table = file.strip_suffix(".csv").unwrap_or(file);
 
     execute!(io::stdout(), EnterAlternateScreen, MoveTo(0, 0))?;
