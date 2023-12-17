@@ -6,6 +6,7 @@ use std::io;
 use anyhow::Result;
 use clap::Parser;
 use crossterm::{
+    cursor::MoveTo,
     execute,
     terminal::{EnterAlternateScreen, LeaveAlternateScreen},
 };
@@ -19,7 +20,7 @@ async fn main() -> Result<()> {
     let file = args.file().rsplitn(2, '/').next().unwrap();
     let table = file.strip_suffix(".csv").unwrap_or(file);
 
-    execute!(io::stdout(), EnterAlternateScreen)?;
+    execute!(io::stdout(), EnterAlternateScreen, MoveTo(0, 0))?;
 
     println!("DataWrangler");
     println!("File: {}", args.file());
