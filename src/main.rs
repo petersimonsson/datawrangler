@@ -1,4 +1,5 @@
 mod args;
+mod prompt;
 
 use std::io;
 
@@ -10,7 +11,7 @@ use crossterm::{
 };
 use datafusion::prelude::*;
 
-use crate::args::Args;
+use crate::{args::Args, prompt::Prompt};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -28,9 +29,10 @@ async fn main() -> Result<()> {
     let options = CsvReadOptions::new().has_header(!args.no_header());
     ctx.register_csv(table, args.file(), options).await?;
 
+    let mut prompt = Prompt::new("SQL>");
+
     loop {
-        let mut buf = String::new();
-        io::stdin().read_line(&mut buf)?;
+        let buf = prompt.prompt()?;
 
         if buf.starts_with("quit") {
             break;
