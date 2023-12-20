@@ -23,9 +23,9 @@ async fn main() -> Result<()> {
 
     execute!(io::stdout(), EnterAlternateScreen, MoveTo(0, 0))?;
 
-    println!("DataWrangler");
-    println!("File: {}", args.file());
-    println!("Table: {}", table);
+    let version = env!("CARGO_PKG_VERSION");
+
+    println!("DataWrangler v{}", version);
     println!();
 
     let ctx = SessionContext::new();
