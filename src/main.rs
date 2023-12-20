@@ -7,6 +7,7 @@ use clap::Parser;
 use crossterm::{
     cursor::MoveTo,
     execute,
+    style::Stylize,
     terminal::{EnterAlternateScreen, LeaveAlternateScreen},
 };
 use datafusion::prelude::*;
@@ -31,10 +32,11 @@ async fn main() -> Result<()> {
     let options = CsvReadOptions::new().has_header(!args.no_header());
     ctx.register_csv(table, args.file(), options).await?;
 
+    let prompt_text = ">> ".dark_green().to_string();
     let mut prompt = DefaultEditor::new()?;
 
     loop {
-        let buf = prompt.readline(">> ");
+        let buf = prompt.readline(&prompt_text);
 
         match buf {
             Ok(buf) => {
