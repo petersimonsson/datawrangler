@@ -15,7 +15,6 @@ pub enum Command {
     NotFound,
     Quit,
     Load(LoadCommand),
-    Show,
 }
 
 #[derive(Debug, Error)]
@@ -44,7 +43,6 @@ impl FromStr for Command {
         Ok(match command.as_str() {
             "quit" => Self::Quit,
             "load" => Self::Load(LoadCommand::from_str(remaining)?),
-            "show" => Self::Show,
             &_ => Self::NotFound,
         })
     }

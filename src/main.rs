@@ -28,7 +28,8 @@ async fn main() -> Result<()> {
     println!("DataWrangler v{}", version);
     println!();
 
-    let ctx = SessionContext::new();
+    let config = SessionConfig::default().with_information_schema(true);
+    let ctx = SessionContext::new_with_config(config);
 
     let prompt_text = ">> ".dark_green().to_string();
     let mut prompt = DefaultEditor::new()?;
@@ -44,11 +45,6 @@ async fn main() -> Result<()> {
                     Command::Quit => break,
                     Command::Load(data) => {
                         if let Err(e) = load_file(&ctx, &data).await {
-                            println!("{}", e);
-                        }
-                    }
-                    Command::Show => {
-                        if let Err(e) = show_tables(&ctx) {
                             println!("{}", e);
                         }
                     }
@@ -92,22 +88,6 @@ async fn load_file(ctx: &SessionContext, data: &LoadCommand) -> Result<()> {
         }
 
         println!("Loaded {} as {}", data.path(), table);
-    }
-
-    Ok(())
-}
-
-fn show_tables(ctx: &SessionContext) -> Result<()> {
-    for cat_name in ctx.catalog_names() {
-        if let Some(catalog) = ctx.catalog(&cat_name) {
-            for schema_name in catalog.schema_names() {
-                if let Some(schema) = catalog.schema(&schema_name) {
-                    for table in schema.table_names() {
-                        println!("{}.{}.{}", &cat_name, &schema_name, table);
-                    }
-                }
-            }
-        }
     }
 
     Ok(())
