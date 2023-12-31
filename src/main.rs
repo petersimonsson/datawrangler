@@ -1,9 +1,11 @@
 mod args;
+mod command_parser;
 
-use std::io;
+use std::{io, str::FromStr};
 
 use anyhow::Result;
 use clap::Parser;
+use command_parser::LoadCommand;
 use crossterm::{
     cursor::MoveTo,
     execute,
@@ -13,13 +15,11 @@ use crossterm::{
 use datafusion::prelude::*;
 use rustyline::{error::ReadlineError, DefaultEditor};
 
-use crate::args::Args;
+use crate::{args::Args, command_parser::Command};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let args = Args::parse();
-    let file = args.file().rsplit('/').next().unwrap();
-    let table = file.strip_suffix(".csv").unwrap_or(file);
+    let _args = Args::parse();
 
     execute!(io::stdout(), EnterAlternateScreen, MoveTo(0, 0))?;
 
@@ -29,8 +29,6 @@ async fn main() -> Result<()> {
     println!();
 
     let ctx = SessionContext::new();
-    let options = CsvReadOptions::new().has_header(!args.no_header());
-    ctx.register_csv(table, args.file(), options).await?;
 
     let prompt_text = ">> ".dark_green().to_string();
     let mut prompt = DefaultEditor::new()?;
@@ -40,16 +38,27 @@ async fn main() -> Result<()> {
 
         match buf {
             Ok(buf) => {
-                if buf.starts_with("quit") {
-                    break;
+                let command = Command::from_str(&buf)?;
+
+                match command {
+                    Command::Quit => break,
+                    Command::Load(data) => {
+                        if let Err(e) = load_file(&ctx, &data).await {
+                            println!("{}", e);
+                        }
+                    }
+                    Command::Show => {
+                        if let Err(e) = show_tables(&ctx) {
+                            println!("{}", e);
+                        }
+                    }
+                    Command::NotFound => match ctx.sql(&buf).await {
+                        Ok(df) => df.show().await?,
+                        Err(e) => println!("{}", e),
+                    },
                 }
 
                 prompt.add_history_entry(&buf)?;
-
-                match ctx.sql(&buf).await {
-                    Ok(df) => df.show().await?,
-                    Err(e) => println!("{}", e),
-                }
             }
             Err(ReadlineError::Eof) => break,
             Err(ReadlineError::Interrupted) => {}
@@ -60,6 +69,34 @@ async fn main() -> Result<()> {
     }
 
     execute!(io::stdout(), LeaveAlternateScreen)?;
+
+    Ok(())
+}
+
+async fn load_file(ctx: &SessionContext, data: &LoadCommand) -> Result<()> {
+    let options = CsvReadOptions::new().has_header(data.has_header());
+    let file = data.path().rsplit('/').next().unwrap();
+    let table = file.replace('.', "_");
+    let table = data.table().unwrap_or(&table);
+    ctx.register_csv(table, data.path(), options).await?;
+
+    println!("Loaded {} as {}", data.path(), table);
+
+    Ok(())
+}
+
+fn show_tables(ctx: &SessionContext) -> Result<()> {
+    for cat_name in ctx.catalog_names() {
+        if let Some(catalog) = ctx.catalog(&cat_name) {
+            for schema_name in catalog.schema_names() {
+                if let Some(schema) = catalog.schema(&schema_name) {
+                    for table in schema.table_names() {
+                        println!("{}.{}.{}", &cat_name, &schema_name, table);
+                    }
+                }
+            }
+        }
+    }
 
     Ok(())
 }
