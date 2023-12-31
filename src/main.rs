@@ -26,6 +26,9 @@ struct ReadLineHelper {
     completer: FilenameCompleter,
 }
 
+#[global_allocator]
+static ALLOC: snmalloc_rs::SnMalloc = snmalloc_rs::SnMalloc;
+
 #[tokio::main]
 async fn main() -> Result<()> {
     let _args = Args::parse();

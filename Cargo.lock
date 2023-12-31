@@ -194,6 +194,7 @@ dependencies = [
  "half",
  "hashbrown",
  "num",
+ "packed_simd",
 ]
 
 [[package]]
@@ -616,6 +617,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "cmake"
+version = "0.1.50"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a31c789563b815f77f4250caee12365734369f942439b7defd71e18a48197130"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "colorchoice"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -968,6 +978,7 @@ dependencies = [
  "datafusion",
  "nom",
  "rustyline",
+ "snmalloc-rs",
  "thiserror",
  "tokio",
 ]
@@ -1672,6 +1683,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "packed_simd"
+version = "0.3.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1f9f08af0c877571712e2e3e686ad79efad9657dbf0f7c3c8ba943ff6c38932d"
+dependencies = [
+ "cfg-if",
+ "num-traits",
+]
+
+[[package]]
 name = "parking_lot"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2138,6 +2159,24 @@ name = "snap"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b6b67fb9a61334225b5b790716f609cd58395f895b3fe8b328786812a40bc3b"
+
+[[package]]
+name = "snmalloc-rs"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "038507ad9c0ff0d6901e057494abcdba49a1a44fe3236f281730a9278166710d"
+dependencies = [
+ "snmalloc-sys",
+]
+
+[[package]]
+name = "snmalloc-sys"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9cae3f7f662ebf11afe4d6534e63fa5846ec0143892c78ddb1040cc01249f143"
+dependencies = [
+ "cmake",
+]
 
 [[package]]
 name = "sqlparser"
