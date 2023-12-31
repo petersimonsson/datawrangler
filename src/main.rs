@@ -13,9 +13,18 @@ use crossterm::{
     terminal::{EnterAlternateScreen, LeaveAlternateScreen},
 };
 use datafusion::prelude::*;
-use rustyline::{error::ReadlineError, DefaultEditor};
+use rustyline::{
+    completion::FilenameCompleter, error::ReadlineError, Completer, CompletionType, Config,
+    EditMode, Editor, Helper, Highlighter, Hinter, Validator,
+};
 
 use crate::{args::Args, command_parser::Command};
+
+#[derive(Helper, Hinter, Highlighter, Validator, Completer)]
+struct ReadLineHelper {
+    #[rustyline(Completer)]
+    completer: FilenameCompleter,
+}
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -32,7 +41,17 @@ async fn main() -> Result<()> {
     let ctx = SessionContext::new_with_config(config);
 
     let prompt_text = ">> ".dark_green().to_string();
-    let mut prompt = DefaultEditor::new()?;
+
+    let helper = ReadLineHelper {
+        completer: FilenameCompleter::new(),
+    };
+    let config = Config::builder()
+        .history_ignore_space(true)
+        .completion_type(CompletionType::List)
+        .edit_mode(EditMode::Vi)
+        .build();
+    let mut prompt = Editor::with_config(config)?;
+    prompt.set_helper(Some(helper));
 
     loop {
         let buf = prompt.readline(&prompt_text);
