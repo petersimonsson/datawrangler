@@ -3,7 +3,7 @@ mod command_parser;
 
 use std::{io, str::FromStr};
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use clap::Parser;
 use command_parser::LoadCommand;
 use crossterm::{
@@ -74,13 +74,25 @@ async fn main() -> Result<()> {
 }
 
 async fn load_file(ctx: &SessionContext, data: &LoadCommand) -> Result<()> {
-    let options = CsvReadOptions::new().has_header(data.has_header());
     let file = data.path().rsplit('/').next().unwrap();
     let table = file.replace('.', "_");
     let table = data.table().unwrap_or(&table);
-    ctx.register_csv(table, data.path(), options).await?;
 
-    println!("Loaded {} as {}", data.path(), table);
+    if let Some((_, file_ext)) = file.rsplit_once('.') {
+        match file_ext {
+            "csv" => {
+                let options = CsvReadOptions::new().has_header(data.has_header());
+                ctx.register_csv(table, data.path(), options).await?;
+            }
+            "parquet" => {
+                ctx.register_parquet(table, data.path(), ParquetReadOptions::default())
+                    .await?
+            }
+            _ => return Err(anyhow!("Unsupported file format: {}", file_ext)),
+        }
+
+        println!("Loaded {} as {}", data.path(), table);
+    }
 
     Ok(())
 }
