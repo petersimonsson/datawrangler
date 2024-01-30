@@ -93,7 +93,7 @@ fn parse_load_command(s: &str) -> IResult<&str, LoadCommand> {
     let (remaining, without_header) = opt(tag_no_case("without header"))(remaining)?;
     let (remaining, table) = opt(delimited(
         multispace0,
-        preceded(tag_no_case("as "), is_not(" \t\r\n")),
+        preceded(tag_no_case("into "), is_not(" \t\r\n")),
         multispace0,
     ))(remaining)?;
 
