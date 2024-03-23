@@ -61,19 +61,18 @@ async fn main() -> Result<()> {
 
         match buf {
             Ok(buf) => {
-                let command = Command::from_str(&buf)?;
+                let command = Command::from_str(&buf);
 
                 match command {
-                    Command::Quit => break,
-                    Command::Load(data) => {
-                        if let Err(e) = load_file(&ctx, &data).await {
-                            println!("{}", e);
-                        }
-                    }
-                    Command::NotFound => match ctx.sql(&buf).await {
-                        Ok(df) => df.show().await?,
-                        Err(e) => println!("{}", e),
+                    Ok(Command::Quit) => break,
+                    Ok(Command::Load(data)) => load_file(&ctx, &data)
+                        .await
+                        .unwrap_or_else(|e| println!("Error: {e}")),
+                    Ok(Command::NotFound) => match ctx.sql(&buf).await {
+                        Ok(df) => df.show().await.unwrap_or_else(|e| println!("Error: {e}")),
+                        Err(e) => println!("Error: {e}"),
                     },
+                    Err(e) => println!("Error: {e}"),
                 }
 
                 prompt.add_history_entry(&buf)?;
