@@ -39,7 +39,7 @@ async fn main() -> Result<()> {
 
     println!("DataWrangler v{}", version);
     println!();
-    println!("Load as CSV file into a table using the LOAD command, eg:");
+    println!("Load a CSV or Parquet file into a table using the LOAD command, eg:");
     println!("LOAD data.csv INTO data");
     println!();
 
