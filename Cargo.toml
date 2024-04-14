@@ -9,7 +9,7 @@ license = "MIT OR Apache-2.0"
 anyhow = "1.0"
 clap = { version = "4.4", features = ["derive"] }
 crossterm = "0.27"
-datafusion = { version = "36.0" }
+datafusion = { version = "37.0" }
 nom = "7.1"
 rustyline = { version = "14.0", features = ["derive"] }
 snmalloc-rs = "0.3"
