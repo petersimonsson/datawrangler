@@ -1,7 +1,7 @@
 mod args;
 mod command_parser;
 
-use std::{io, str::FromStr};
+use std::{fs::canonicalize, io, str::FromStr};
 
 use anyhow::{anyhow, Result};
 use clap::Parser;
@@ -94,7 +94,13 @@ async fn main() -> Result<()> {
 }
 
 async fn load_file(ctx: &SessionContext, data: &LoadCommand) -> Result<()> {
-    let file = data.path().rsplit('/').next().unwrap();
+    let path = shellexpand::full(data.path())?.to_string();
+    let path = canonicalize(path)?;
+    let file = path
+        .file_name()
+        .unwrap_or_default()
+        .to_str()
+        .unwrap_or_default();
     let table = file.replace('.', "_");
     let table = data.table().unwrap_or(&table);
 
@@ -102,10 +108,11 @@ async fn load_file(ctx: &SessionContext, data: &LoadCommand) -> Result<()> {
         match file_ext {
             "csv" => {
                 let options = CsvReadOptions::new().has_header(data.has_header());
-                ctx.register_csv(table, data.path(), options).await?;
+                ctx.register_csv(table, path.to_str().unwrap(), options)
+                    .await?;
             }
             "parquet" => {
-                ctx.register_parquet(table, data.path(), ParquetReadOptions::default())
+                ctx.register_parquet(table, path.to_str().unwrap(), ParquetReadOptions::default())
                     .await?
             }
             _ => return Err(anyhow!("Unsupported file format: {}", file_ext)),
