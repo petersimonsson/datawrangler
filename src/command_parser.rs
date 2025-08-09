@@ -6,7 +6,7 @@ use nom::{
     combinator::{all_consuming, opt},
     error::Error,
     sequence::{delimited, preceded},
-    Finish, IResult,
+    Finish, IResult, Parser,
 };
 use thiserror::Error;
 
@@ -27,7 +27,10 @@ impl FromStr for Command {
     type Err = CommandError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (remaining, command) = match delimited(multispace0, alpha1, multispace0)(s).finish() {
+        let (remaining, command) = match delimited(multispace0, alpha1, multispace0)
+            .parse(s)
+            .finish()
+        {
             Ok(res) => res,
             Err(Error { input, code }) => {
                 return Err(Error {
@@ -59,7 +62,7 @@ impl FromStr for LoadCommand {
     type Err = CommandError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (_, command) = match all_consuming(parse_load_command)(s).finish() {
+        let (_, command) = match all_consuming(parse_load_command).parse(s).finish() {
             Ok(res) => res,
             Err(Error { input, code }) => {
                 return Err(Error {
@@ -89,13 +92,14 @@ impl LoadCommand {
 }
 
 fn parse_load_command(s: &str) -> IResult<&str, LoadCommand> {
-    let (remaining, path) = delimited(multispace0, is_not(" \t\r\n"), multispace0)(s)?;
-    let (remaining, without_header) = opt(tag_no_case("without header"))(remaining)?;
+    let (remaining, path) = delimited(multispace0, is_not(" \t\r\n"), multispace0).parse(s)?;
+    let (remaining, without_header) = opt(tag_no_case("without header")).parse(remaining)?;
     let (remaining, table) = opt(delimited(
         multispace0,
         preceded(tag_no_case("into "), is_not(" \t\r\n")),
         multispace0,
-    ))(remaining)?;
+    ))
+    .parse(remaining)?;
 
     Ok((
         remaining,
